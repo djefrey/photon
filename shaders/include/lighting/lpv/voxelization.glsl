@@ -46,6 +46,7 @@ bool is_inside_voxel_volume(vec3 voxel_pos) {
 
 #ifdef PROGRAM_SHADOW
 bool is_voxelized(uint block_id, bool vertex_at_grid_corner) {
+    #if !defined COLORWHEEL
     bool is_terrain = any(equal(
         ivec4(renderStage),
         ivec4(
@@ -55,6 +56,9 @@ bool is_voxelized(uint block_id, bool vertex_at_grid_corner) {
             MC_RENDER_STAGE_TERRAIN_CUTOUT_MIPPED
         )
     ));
+    #else
+    bool is_terrain = true;
+    #endif
 
     bool is_transparent_block = block_id == 1u || // Water
         block_id == 18u || // Transparent metal objects

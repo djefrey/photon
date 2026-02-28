@@ -29,9 +29,14 @@ layout(
 #endif
 
 in vec2 uv;
-in vec2 light_levels;
 in vec3 scene_pos;
 in vec4 tint;
+
+#if defined COLORWHEEL
+vec2 light_levels;
+#else
+in vec2 light_levels;
+#endif
 
 flat in uint material_mask;
 flat in mat3 tbn;
@@ -43,7 +48,9 @@ flat in vec2 atlas_tile_offset;
 flat in vec2 atlas_tile_scale;
 #endif
 
-#if defined PROGRAM_GBUFFERS_TERRAIN
+#if defined COLORWHEEL
+float vanilla_ao;
+#elif defined PROGRAM_GBUFFERS_TERRAIN
 in float vanilla_ao;
 #endif
 
@@ -284,7 +291,22 @@ void main() {
 
     //--//
 
+#if !defined COLORWHEEL
     vec4 base_color = read_tex(gtexture) * tint;
+#else
+	vec4 base_color = read_tex(gtexture);
+	vec4 overlayColor;
+
+	clrwl_computeFragment(base_color, base_color, light_levels, vanilla_ao, overlayColor);
+	light_levels = clamp((light_levels - 1.0 / 32.0) * 32.0 / 30.0, 0.0, 1.0);
+    
+    vanilla_ao = vanilla_ao < 0.1
+        ? 1.0
+        : vanilla_ao; // fixes models where vanilla ao breaks (eg lecterns)
+    vanilla_ao =
+        material_mask == 5 ? 1.0 : vanilla_ao; // no vanilla ao on leaves
+#endif
+
 #ifdef NORMAL_MAPPING
     vec3 normal_map = read_tex(normals).xyz;
 #endif
@@ -341,7 +363,9 @@ void main() {
         + (1.0 - vanilla_ao_strength);
 #endif
 
-#if defined PROGRAM_GBUFFERS_ENTITIES
+#if defined COLORWHEEL
+    base_color.rgb = mix(base_color.rgb, overlayColor.rgb, overlayColor.a);
+#elif defined PROGRAM_GBUFFERS_ENTITIES
     base_color.rgb = mix(base_color.rgb, entityColor.rgb, entityColor.a);
 #endif
 

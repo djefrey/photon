@@ -11,7 +11,9 @@
 
 #include "/include/global.glsl"
 
-layout(location = 0) out vec3 shadowcolor0_out;
+// Colorwheel OIT expects outputs to be vec4
+layout(location = 0) out vec4 _shadowcolor0_out;
+vec3 shadowcolor0_out;
 
 /* RENDERTARGETS: 0 */
 
@@ -160,6 +162,16 @@ void main() {
 #endif
     } else {
         vec4 base_color = textureLod(tex, uv, 0);
+
+#if defined COLORWHEEL
+        vec2 lmcoord;
+        float ao;
+        vec4 overlayColor;
+
+        clrwl_computeFragment(base_color, base_color, lmcoord, ao, overlayColor);
+        base_color.rgb = mix(base_color.rgb, overlayColor.rgb, overlayColor.a);
+#endif
+
         if (base_color.a < 0.1) {
             discard;
         }
@@ -169,4 +181,6 @@ void main() {
             = 0.25 * srgb_eotf_inv(shadowcolor0_out) * rec709_to_rec2020;
         shadowcolor0_out *= step(base_color.a, 1.0 - rcp(255.0));
     }
+
+    _shadowcolor0_out = vec4(shadowcolor0_out, 1.0);
 }

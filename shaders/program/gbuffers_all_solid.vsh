@@ -12,9 +12,14 @@
 #include "/include/global.glsl"
 
 out vec2 uv;
-out vec2 light_levels;
 out vec3 scene_pos;
 out vec4 tint;
+
+#if defined COLORWHEEL
+vec2 light_levels;
+#else
+out vec2 light_levels;
+#endif
 
 flat out uint material_mask;
 flat out mat3 tbn;
@@ -26,7 +31,9 @@ flat out vec2 atlas_tile_offset;
 flat out vec2 atlas_tile_scale;
 #endif
 
-#if defined PROGRAM_GBUFFERS_TERRAIN
+#if defined COLORWHEEL
+float vanilla_ao;
+#elif defined PROGRAM_GBUFFERS_TERRAIN
 out float vanilla_ao;
 #endif
 

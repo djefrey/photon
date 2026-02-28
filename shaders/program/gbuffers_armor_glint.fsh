@@ -42,7 +42,19 @@ void main() {
     }
 #endif
 
+#if !defined COLORWHEEL
     vec3 armor_glint = texture(gtexture, uv, lod_bias).rgb;
+#else
+	vec4 color = texture(gtexture, uv, lod_bias);
+	vec2 lmcoord;
+	float ao;
+	vec4 overlayColor;
+
+	clrwl_computeFragment(color, color, lmcoord, ao, overlayColor);
+	color.rgb = mix(color.rgb, overlayColor.rgb, overlayColor.a);
+    
+	vec3 armor_glint = color.rgb;
+#endif
 
 #if defined IS_IRIS
     // New overlay handling
