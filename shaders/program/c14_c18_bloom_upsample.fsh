@@ -39,7 +39,8 @@ void main() {
     vec2 uv_src = uv * src_tile_scale
         + src_tile_offset;
 
-    bloom_tile = 0.5 * texelFetch(SRC_SAMPLER, texel, 0).rgb; // Destination tile.
-    bloom_tile += 0.5 * textureLod(SRC_SAMPLER, uv_src, 0).rgb; // Source tile.
+    const float src_weight = mix(0.25, 0.90, 0.5 * BLOOM_SPREAD);
+    bloom_tile = texelFetch(SRC_SAMPLER, texel, 0).rgb * (1.0 - src_weight); // Destination tile.
+    bloom_tile += textureLod(SRC_SAMPLER, uv_src, 0).rgb * src_weight; // Source tile.
 }
 
